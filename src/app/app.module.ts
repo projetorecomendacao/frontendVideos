@@ -3,16 +3,51 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { SocialLoginModule, AuthServiceConfig, GoogleLoginProvider } from 'angularx-social-login';
+import { AuthGuard } from 'src/security/auth.guard';
+import { DAOService } from './shared/dao.service';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { AuthInterceptor } from 'src/security/auth.interceptor';
+import { PrivateModule } from './private/private.module';
+import { SecurityModule } from 'src/security/security.module';
+import { IndexModule } from './index/index.module';
+
+const config = new AuthServiceConfig([
+  {
+    id: GoogleLoginProvider.PROVIDER_ID,
+    provider: new GoogleLoginProvider('828775864880-255hvrrt48he9re9td2372a7h1eg5h6o.apps.googleusercontent.com')
+  }
+]);
+
+export function provideConfig() {
+  return config;
+}
+
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    SocialLoginModule,
+    PrivateModule,
+    SecurityModule,
+    HttpClientModule,
+    IndexModule
   ],
-  providers: [],
+  providers: [
+    AuthGuard,
+    DAOService,
+    {
+      provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true
+    },
+    {
+      provide: AuthServiceConfig,
+      useFactory: provideConfig
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
